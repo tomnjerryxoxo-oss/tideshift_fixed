@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
 
 class UserDatasource {
-  final String baseUrl = AppConfig.localUrl;
+  final String baseUrl = AppConfig.baseUrl;
 
   /// Get Firebase ID token
   Future<String> _getIdToken() async {
