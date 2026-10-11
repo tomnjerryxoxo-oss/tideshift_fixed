@@ -8,7 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 
 class DailyCarbonLogRemoteDataSource {
-  final String baseUrl = AppConfig.localUrl;
+  final String baseUrl = AppConfig.baseUrl;
 
   // fungsi retry request untuk mengatasi token used too early
   Future<http.Response> _retryRequest(Future<http.Response> Function() requestFn) async {
