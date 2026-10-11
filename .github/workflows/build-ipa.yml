@@ -19,15 +19,30 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      # Build ios app bundle tanpa mengecek sertifikat/signing
-      - name: Build iOS App (Unsigned)
-        run: flutter build ios --release --no-codesign
+      # Install CocoaPods dependencies untuk iOS
+      - name: Install Pods
+        run: |
+          cd ios
+          pod install
 
-      # Kemas Runner.app menjadi .ipa
+      # Build Xcode project langsung dengan mematikan keharusan Code Signing
+      - name: Build Runner via xcodebuild
+        run: |
+          xcodebuild -workspace ios/Runner.xcworkspace \
+            -scheme Runner \
+            -configuration Release \
+            -sdk iphoneos \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_BUILD_SETTINGS=NO \
+            ONLY_ACTIVE_ARCH=NO
+
+      # Packaging hasil build menjadi file IPA
       - name: Package IPA
         run: |
           mkdir -p Payload
-          cp -r build/ios/iphoneos/Runner.app Payload/
+          cp -r build/ios/iphoneos/Runner.app Payload/ || cp -r ios/build/Build/Products/Release-iphoneos/Runner.app Payload/
           zip -r app.ipa Payload
 
       - name: Upload IPA Artifact
