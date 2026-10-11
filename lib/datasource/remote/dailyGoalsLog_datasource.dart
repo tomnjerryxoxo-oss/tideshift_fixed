@@ -5,7 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../models/dailyGoalsResponseModel.dart';
 
 class DailyGoalsRemoteDataSource {
-  final String baseUrl = AppConfig.localUrl;
+  final String baseUrl = AppConfig.baseUrl;
   final http.Client client = http.Client();
 
   Future<http.Response> _retryRequest(
