@@ -1,5 +1,5 @@
 import os
-from urllib.parse import quote_plus
+from urllib.parse import quote_plus, urlparse, parse_qsl, urlencode, urlunparse
 
 from flask import Flask, g, request, jsonify
 from flask_cors import CORS
@@ -24,15 +24,26 @@ pymysql.install_as_MySQLdb()
 
 
 # ============================
-# KONFIGURASI DATABASE (ISI DI SINI)
+# KONFIGURASI DATABASE
 # ============================
-# Untuk debugging di laptop, ubah 4 nilai di bawah ini sesuai MySQL kamu.
-# - XAMPP bawaan: user "root" dan password kosong ("")
-# - Kalau MySQL kamu pakai password, isi di DB_PASSWORD
+# Nilai di bawah hanya dipakai saat debugging di laptop (tanpa DATABASE_URL).
+# Di Railway, koneksi diambil dari variable DATABASE_URL (Aiven).
 DB_USER = "root"
-DB_PASSWORD = ""            # <-- ISI PASSWORD MYSQL KAMU DI SINI (kosong kalau tidak ada)
+DB_PASSWORD = ""            # <-- isi password MySQL lokal kamu (kosong kalau tidak ada)
 DB_HOST = "localhost"
-DB_NAME = "ecomagaradata"   # database ini harus sudah dibuat dulu di MySQL
+DB_NAME = "ecomagaradata"   # database ini harus sudah dibuat dulu di MySQL lokal
+
+# File CA certificate dari Aiven (download dari dashboard Aiven, simpan sebagai ca.pem
+# di folder yang sama dengan app.py). Ini sertifikat publik, aman di-commit.
+CA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ca.pem")
+
+
+def _get_cloud_url():
+    return (
+        os.environ.get('DATABASE_URL')
+        or os.environ.get('MYSQL_URL')
+        or os.environ.get('MYSQL_PUBLIC_URL')
+    )
 
 
 def get_database_uri():
@@ -41,31 +52,52 @@ def get_database_uri():
     1. Kalau ada variabel lingkungan dari Railway (DATABASE_URL / MYSQL_URL), pakai itu.
     2. Kalau tidak ada (di laptop), pakai nilai DB_USER, DB_PASSWORD, dst di atas.
     """
-    url = (
-        os.environ.get('DATABASE_URL')
-        or os.environ.get('MYSQL_URL')
-        or os.environ.get('MYSQL_PUBLIC_URL')
-    )
+    url = _get_cloud_url()
     if url:
         if url.startswith('mysql://'):
             url = url.replace('mysql://', 'mysql+pymysql://', 1)
-        if 'charset=' not in url:
-            url += ('&' if '?' in url else '?') + 'charset=utf8mb4'
-        return url
+
+        parsed = urlparse(url)
+        # buang ssl-mode (tidak dikenali PyMySQL); SSL diatur lewat connect_args
+        query = [
+            (k, v) for k, v in parse_qsl(parsed.query)
+            if k.lower() not in ('ssl-mode', 'ssl_mode')
+        ]
+        if not any(k == 'charset' for k, _ in query):
+            query.append(('charset', 'utf8mb4'))
+        return urlunparse(parsed._replace(query=urlencode(query)))
 
     # quote_plus supaya password dengan karakter khusus (@, #, /, dll) tetap aman
     password = quote_plus(DB_PASSWORD)
     return f"mysql+pymysql://{DB_USER}:{password}@{DB_HOST}/{DB_NAME}?charset=utf8mb4"
 
 
+def get_engine_options():
+    # pool_pre_ping & pool_recycle mencegah error "MySQL server has gone away"
+    opts = {"pool_pre_ping": True, "pool_recycle": 280}
+    # SSL hanya dipakai kalau konek ke database cloud (Aiven)
+    if _get_cloud_url():
+        opts["connect_args"] = {"ssl": {"ca": CA_PATH}}
+    return opts
+
+
 app = Flask(__name__)
 CORS(app)  # wajib supaya app Flutter yang jalan di Chrome bisa memanggil server ini
 app.config['SQLALCHEMY_DATABASE_URI'] = get_database_uri()
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = get_engine_options()
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db.init_app(app)
 
 with app.app_context():
     db.create_all()
+
+
+# ============================
+# ROUTE: Health Check
+# ============================
+@app.route('/', methods=['GET'])
+def health():
+    return jsonify({"status": "ok"}), 200
 
 
 # ============================
