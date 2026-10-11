@@ -5,7 +5,7 @@ import 'package:ecomagara/config/config.dart';
 import 'package:ecomagara/datasource/models/goalsAchievedModel.dart';
 
 class GoalsAchievedRemoteDatasource {
-  final String baseUrl = AppConfig.localUrl;
+  final String baseUrl = AppConfig.baseUrl;
   final http.Client client = http.Client();
 
   Future<http.Response> _retryRequest(Future<http.Response> Function() requestFn) async {
