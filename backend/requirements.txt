@@ -1,4 +1,7 @@
 flask
-firebase-admin
-flask_sqlalchemy
+gunicorn
+flask-cors
+flask-sqlalchemy
 pymysql
+cryptography
+firebase-admin
