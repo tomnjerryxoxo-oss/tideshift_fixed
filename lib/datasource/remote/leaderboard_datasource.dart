@@ -5,7 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 
 class LeaderboardDatasource {
-  final String baseUrl = AppConfig.localUrl;
+  final String baseUrl = AppConfig.baseUrl;
 
 Future<List<Map<String, dynamic>>> fetchLeaderboard() async {
   final user = FirebaseAuth.instance.currentUser;
