@@ -1,52 +1,41 @@
-name: Build iOS IPA
+ name: Build iOS Ipa
 
 on:
   workflow_dispatch:
 
 jobs:
-  build:
+  build-ios:
+    name: Build iOS Ipa
     runs-on: macos-latest
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v3
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2
         with:
-          channel: stable
+          channel: 'stable'
+          architecture: x64
+      - run: flutter pub get
 
-      - name: Install dependencies
-        run: flutter pub get
+      - run: pod repo update
+        working-directory: ios
 
-      # Install CocoaPods dependencies untuk iOS
-      - name: Install Pods
-        run: |
-          cd ios
-          pod install
+      - run: flutter build ios --release --no-codesign
 
-      # Build Xcode project langsung dengan mematikan keharusan Code Signing
-      - name: Build Runner via xcodebuild
-        run: |
-          xcodebuild -workspace ios/Runner.xcworkspace \
-            -scheme Runner \
-            -configuration Release \
-            -sdk iphoneos \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_BUILD_SETTINGS=NO \
-            ONLY_ACTIVE_ARCH=NO
+      - run: mkdir Payload
+        working-directory: build/ios/iphoneos
 
-      # Packaging hasil build menjadi file IPA
-      - name: Package IPA
-        run: |
-          mkdir -p Payload
-          cp -r build/ios/iphoneos/Runner.app Payload/ || cp -r ios/build/Build/Products/Release-iphoneos/Runner.app Payload/
-          zip -r app.ipa Payload
+      - run: mv Runner.app/ Payload
+        working-directory: build/ios/iphoneos
 
-      - name: Upload IPA Artifact
-        uses: actions/upload-artifact@v4
+      - name: Zip output
+        run: zip -qq -r -9 FlutterIpaExport.ipa Payload
+        working-directory: build/ios/iphoneos
+
+      - name: Upload binaries to release
+        uses: svenstaro/upload-release-action@v2
         with:
-          name: ios-ipa
-          path: app.ipa
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: build/ios/iphoneos/FlutterIpaExport.ipa
+          tag: v1.0
+          overwrite: true
+          body: "Congrats"
