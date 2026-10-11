@@ -17,31 +17,33 @@ jobs:
 
       - run: flutter pub get
 
-      # Prepare iOS & CocoaPods tanpa trigger build penuh
+      # Prepare config & CocoaPods
       - run: flutter build ios --config-only --no-codesign
 
-      # Panggil xcodebuild langsung buat bypass penanganan signing dari Flutter CLI
+      # Build Xcode Project dengan opsi bypass signing & lokasi output yang presisi
       - name: Build Xcode Project
         run: |
           xcodebuild -workspace ios/Runner.xcworkspace \
             -scheme Runner \
             -configuration Release \
             -sdk iphoneos \
+            -derivedDataPath build_output \
             CODE_SIGNING_ALLOWED=NO \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_BUILD_SETTINGS=NO \
-            ONLY_ACTIVE_ARCH=NO \
-            derivedDataPath build
+            ONLY_ACTIVE_ARCH=NO
 
-      # Buat folder Payload dan zip jadi IPA
+      # Cari Runner.app secara dinamis lalu kemas jadi IPA
       - name: Create IPA
         run: |
           mkdir -p Payload
-          cp -r build/Build/Products/Release-iphoneos/Runner.app Payload/
+          APP_PATH=$(find build_output -name "Runner.app" -type d | head -n 1)
+          echo "Found Runner.app at: $APP_PATH"
+          cp -r "$APP_PATH" Payload/
           zip -qq -r -9 FlutterIpaExport.ipa Payload
 
-      # Upload ke GitHub Release (sama kayak script artikel)
+      # Upload ke GitHub Release
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
         with:
