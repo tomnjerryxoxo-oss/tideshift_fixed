@@ -19,18 +19,11 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Prepare iOS configuration
-        run: flutter build ios --config-only
+      # Build ios app bundle tanpa mengecek sertifikat/signing
+      - name: Build iOS App (Unsigned)
+        run: flutter build ios --release --no-codesign
 
-      - name: Build Runner.app without signing
-        run: |
-          xcodebuild -workspace ios/Runner.xcworkspace \
-            -scheme Runner \
-            -configuration Release \
-            -sdk iphoneos \
-            CODE_SIGNING_ALLOWED=NO \
-            CODE_SIGNING_REQUIRED=NO
-
+      # Kemas Runner.app menjadi .ipa
       - name: Package IPA
         run: |
           mkdir -p Payload
