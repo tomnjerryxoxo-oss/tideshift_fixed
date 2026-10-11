@@ -12,3 +12,4 @@ networkx
 scikit-fuzzy
 pandas
 setuptools
+packaging
