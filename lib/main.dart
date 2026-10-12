@@ -177,6 +177,14 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
+      builder: (context, child) {
+        return MediaQuery.removePadding(
+          context: context,
+          removeTop: true,
+          removeBottom: true,
+          child: child!,
+        );
+      },
       home: Splashscreen(),
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
