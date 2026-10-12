@@ -51,23 +51,36 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:google_nav_bar/google_nav_bar.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart'
+    show kIsWeb, defaultTargetPlatform, TargetPlatform;
+
+FirebaseOptions? firebaseOptions() {
+  if (kIsWeb) {
+    return const FirebaseOptions(
+      apiKey: 'AIzaSyCcgwLYR5F69Bus6yhbEhJsPX_eIbuRXnI',
+      authDomain: 'tideshift-d897e.firebaseapp.com',
+      projectId: 'tideshift-d897e',
+      storageBucket: 'tideshift-d897e.firebasestorage.app',
+      messagingSenderId: '1016195742709',
+      appId: '1:1016195742709:web:d9b8062279c41a95ad3ebc',
+    );
+  }
+  if (defaultTargetPlatform == TargetPlatform.iOS) {
+    return const FirebaseOptions(
+      apiKey: 'AIzaSyBm_ZWaF3aS9aXF4v3OCt5wMCP3WmAIHmQ',
+      appId: '1:1016195742709:ios:2d711e75a7ba34edad3ebc',
+      messagingSenderId: '1016195742709',
+      projectId: 'tideshift-d897e',
+      storageBucket: 'tideshift-d897e.firebasestorage.app',
+      iosBundleId: 'inkobyte.co',
+    );
+  }
+  return null;
+}
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
-    options:
-        kIsWeb
-            ? const FirebaseOptions(
-              apiKey: "AIzaSyCcgwLYR5F69Bus6yhbEhJsPX_eIbuRXnI",
-              authDomain: "tideshift-d897e.firebaseapp.com",
-              projectId: "tideshift-d897e",
-              storageBucket: "tideshift-d897e.firebasestorage.app",
-              messagingSenderId: "1016195742709",
-              appId: "1:1016195742709:web:d9b8062279c41a95ad3ebc",
-            )
-            : null,
-  );
+  await Firebase.initializeApp(options: firebaseOptions());
 
   // REPOSITORIES
   Get.lazyPut<FactRepository>(
