@@ -28,7 +28,15 @@ jobs:
 
       - name: Tampilkan error ringkas
         if: failure()
-        run: grep -n -B 2 -A 15 -E "What went wrong|Caused by|e: |error:" build.log | head -100
+        run: |
+          grep -n -B 2 -A 15 -E "What went wrong|Caused by|e: |error:" build.log | head -100
+
+      - name: Simpan log build
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log
+          path: build.log
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
