@@ -22,7 +22,13 @@ jobs:
 
       - run: flutter pub get
 
-      - run: flutter build apk --release -v
+      - name: Build APK
+        shell: bash
+        run: flutter build apk --release -v 2>&1 | tee build.log
+
+      - name: Tampilkan error ringkas
+        if: failure()
+        run: grep -n -B 2 -A 15 -E "What went wrong|Caused by|e: |error:" build.log | head -100
 
       - name: Upload binaries to release
         uses: svenstaro/upload-release-action@v2
