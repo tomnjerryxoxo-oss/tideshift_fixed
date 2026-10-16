@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1016195742709",
+    "project_id": "tideshift-d897e",
+    "storage_bucket": "tideshift-d897e.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1016195742709:android:c97fae08ced8c3e3ad3ebc",
+        "android_client_info": {
+          "package_name": "tideshift.co.id"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDMyJEblWlRG_FuYitRbVOgzRHIg-B9fho"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
